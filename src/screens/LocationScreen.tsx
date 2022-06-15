@@ -1,93 +1,85 @@
-import React, { useEffect, useState } from "react"
-import { StyleSheet, Text, View, Button } from "react-native"
-import * as TaskManager from "expo-task-manager"
-import * as Location from "expo-location"
-import { useDispatch } from "react-redux"
-import { useAppDispatch } from "../redux/ReduxHooks"
-import { addLocation } from "../redux/UserLocationSlice"
-import RootNavigation from "../navigation/RootNavigation"
+/* istanbul ignore file */
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View, Button, Alert } from "react-native";
+import * as Location from "expo-location";
+import { useAppDispatch, useAppSelector } from "../redux/ReduxHooks";
+import { addLocation } from "../redux/UserLocationSlice";
+import RootNavigation from "../navigation/RootNavigation";
 
-const LOCATION_TASK_NAME = "LOCATION_TASK_NAME"
-let foregroundSubscription:any = null
-TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-  if (error) {
-    console.error(error)
-    return
-  }
-  if (data) {
-    // Extract location coordinates from data
-    const { locations } = data
-    const location = locations[0]
-    if (location) {
-      console.log("Location in background", location.coords)
-    }
-  }
-})
 export default function App() {
-  const [position, setPosition] = useState(null)
-  const [date, setDate] = useState<Date>()
-  const dispatch = useAppDispatch()
-  const MINUTE_5_MS = 600000;
-  
+  const list = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
+  const MINUTE_5_MS = 1000;
+  const [flag, setFlag] = useState(false);
+
   useEffect(() => {
-    const requestPermissions = async () => {
-      const foreground = await Location.requestForegroundPermissionsAsync()
-      if (foreground.granted) await Location.requestBackgroundPermissionsAsync()
-    }
-    requestPermissions()
+    console.log("state is running");
+    getloaction();
+  }, [flag]);
 
-    startForegroundUpdate();
-    const interval = setInterval(() => {
-      if(position)
-      {
-        dispatch(addLocation({latitude:position?.latitude??0,longitude:position?.longitude??0,name:""}))
-      }
-     
-    }, MINUTE_5_MS);
-  
-    return () => clearInterval(interval); 
-  }, [])
-
-
-  const startForegroundUpdate = async () => {
-    // Check if foreground permission is granted
-    const { granted } = await Location.getForegroundPermissionsAsync()
-    if (!granted) {
-      console.log("location tracking denied")
-      return
-    }
-
-    // Make sure that foreground location tracking is not running
-    foregroundSubscription?.remove()
-
-    // Start watching position in real-time
-    foregroundSubscription = await Location.watchPositionAsync(
-      {
-        // For better logs, we set the accuracy to the most sensitive option
-        accuracy: Location.Accuracy.BestForNavigation,
-      },
-      location => {
-        setPosition(location.coords)
-        const date=new Date(location.timestamp)
-        if(date.toString().includes("T"))
-        {
-           setDate(date)
+  const postRequest = (location_name: string) => {
+    const data = { location_name: location_name, time: new Date() };
+    fetch(`https://httpstat.us/200`, {
+      method: "post",
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response && JSON.stringify(response.status) == "200") {
+          setTimeout(() => {
+            setFlag(!flag);
+          }, 3000);
         }
-      }
+      })
+      .catch((err) => console.log(err));
+  };
+
+  function getLocationName(location: any) {
+    const API_KEY = "afa38bbd76e44a78a05b11c85639e62a";
+    fetch(
+      `https://api.opencagedata.com/geocode/v1/json?q=${location.coords.latitude}+${location.coords.longitude}&key=${API_KEY}`
     )
+      .then((response) => response.json())
+      .then((res) => {
+        if (res && res.results && res.results.length) {
+          let result: any = res.results[0];
+
+          if (list.length <= 30) {
+            dispatch(
+              addLocation({
+                latitude: location?.coords?.latitude ?? 0,
+                longitude: location?.coords?.latitude ?? 0,
+                name: result.formatted,
+              })
+            );
+            postRequest(result.formatted);
+          }
+        }
+      })
+      .catch((err) => console.error(err));
+  }
+
+  async function getloaction() {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission to access location was denied");
+      return;
+    }
+    let location = await Location.getCurrentPositionAsync({});
+    if (location) {
+      getLocationName(location);
+    }
   }
 
   return (
-    <View  testID="LocationScreen" style={styles.container}>
-     <RootNavigation></RootNavigation>
+    <View testID="LocationScreen" style={styles.container}>
+      <RootNavigation></RootNavigation>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   
   },
   switchContainer: {
     flexDirection: "row",
@@ -99,8 +91,6 @@ const styles = StyleSheet.create({
   separator: {
     marginVertical: 8,
   },
-})
-
-
+});
 
 // ALl i am having some issue with the sound so i am just showing you the detail then ill join from the phone

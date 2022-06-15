@@ -2,51 +2,33 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { cleanup, fireEvent, render } from "@testing-library/react-native";
 
+import { configureStore } from "@reduxjs/toolkit";
+import MapScreen from "../src/screens/MapScreen";
 import { store } from "../src/redux/store";
 import { useAppDispatch } from "../src/redux/ReduxHooks";
-import Home from "../src/screens/Home";
-import { addLocation } from "../src/redux/UserLocationSlice";
 
-describe("AddTodo component test", () => {
+describe("MapScreen Test", () => {
   test("initial Render Test", () => {
     let state = store.getState().user;
-    state = [
-      { location: "Home", long: -122.4324, lat: 37.78825, time: 1 },
-      { location: "Home", long: -122.4324, lat: 37.78825, time: 1 },
-      { location: "Home", long: -122.4324, lat: 37.78825, time: 1 },
-    ];
-    // const dispatch = useAppDispatch();
-    // dispatch(
-    //   addLocation({ latitude: 37.78825, name: "asd", longitude: -122.4324 })
-    // );
-    expect(state.length).toEqual(3);
+    expect(state.length).toEqual(1);
     const component = (
       <Provider store={store}>
-        <Home />
+        <MapScreen />
       </Provider>
     );
 
     const tree = render(component);
-    const item = tree.getByTestId("mainView");
+    const item = tree.getByTestId("mapContainer");
     expect(item).toBeDefined();
-
-    const item1 = tree.getByTestId("deleteAllTest");
-    expect(item1).toBeDefined();
-
-    const item2 = tree.getByTestId("listScreenText");
+    const item2 = tree.getByTestId("mapView");
     expect(item2).toBeDefined();
-
-    const item3 = tree.getByTestId("listView");
-    expect(item3).toBeDefined();
-    expect(state.length).toEqual(3);
-    const item4 = tree.queryAllByText("User Location Detail");
-    expect(item4.length).toBe(1);
-    fireEvent.press(item4[0]);
-    expect(jest.fn(() => {}));
+    const item3 = tree.queryAllByTestId("mapMarker");
+    expect(item3.length).toBe(1);
 
     //  const effect= jest.spyOn(React,'useEffect').mockImplementation((f)=>f())
     //  expect(effect).toHaveBeenCalledTimes(1);
 
+    // const=useAppDispatch()
     // state = store.getState().toDo;
     // let changedToDo = state.toDoList.find((p) => p.toDoId === 1);
     // expect(changedToDo?.isComplete).toBeFalsy();
