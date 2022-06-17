@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Provider } from "react-redux";
 import { cleanup, fireEvent, render } from "@testing-library/react-native";
-
 import { configureStore } from "@reduxjs/toolkit";
 import LocationScreen from "../src/screens/LocationScreen";
 import { store } from "../src/redux/store";

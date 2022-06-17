@@ -1,5 +1,5 @@
+/* istanbul ignore file */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { lazy } from "react";
 
 interface CounterState {
   location: string;

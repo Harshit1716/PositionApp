@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Button, Alert } from "react-native";
 import * as Location from "expo-location";
@@ -9,14 +8,13 @@ import RootNavigation from "../navigation/RootNavigation";
 export default function App() {
   const list = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
-  const MINUTE_5_MS = 1000;
+  const MINUTE_5_MS = 300000;
   const [flag, setFlag] = useState(false);
 
   useEffect(() => {
-    console.log("state is running");
     getloaction();
   }, [flag]);
-
+  /* istanbul ignore next */
   const postRequest = (location_name: string) => {
     const data = { location_name: location_name, time: new Date() };
     fetch(`https://httpstat.us/200`, {
@@ -32,7 +30,7 @@ export default function App() {
       })
       .catch((err) => console.log(err));
   };
-
+  /* istanbul ignore next */
   function getLocationName(location: any) {
     const API_KEY = "afa38bbd76e44a78a05b11c85639e62a";
     fetch(
@@ -57,7 +55,7 @@ export default function App() {
       })
       .catch((err) => console.error(err));
   }
-
+  /* istanbul ignore next */
   async function getloaction() {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -92,5 +90,3 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
 });
-
-// ALl i am having some issue with the sound so i am just showing you the detail then ill join from the phone
